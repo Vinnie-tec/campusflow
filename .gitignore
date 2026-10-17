@@ -24,14 +24,16 @@
 .DS_Store
 *.pem
 
-# debug
+# debug logs & temporary files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
+# env files (NEVER commit secrets)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- ADDED FOR OUR PROFESSIONAL BACKEND WORKFLOW ---
+
+# Drizzle Studio local cache/state (if generated locally)
+.drizzle/
+
+# Operating system / IDE specific files
+.vscode/           # Personal VS Code workspace settings (optional, but good if you have local extensions/configs)
+.idea/             # WebStorm / JetBrains IDE files
+Thumbs.db          # Windows thumbnail cache

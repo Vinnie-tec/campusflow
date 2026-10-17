@@ -24,6 +24,6 @@ export default defineConfig({
     url:
       process.env.DATABASE_URL_UNPOOLED ??
       process.env.DATABASE_URL ??
-      "",
+      "process.env.DATABASE_URL is missing. Check your .env.local file.",
   },
 });

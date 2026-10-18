@@ -4,43 +4,78 @@ import { eq } from "drizzle-orm";
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 
+import { updateProjectSchema } from "@/lib/validations/project";
+
 // PATCH: Update one project using its ID.
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  // Step 1: Read and validate the project ID.
+  const { id } = await context.params;
+  const projectId = Number(id);
+
+  if (!Number.isInteger(projectId) || projectId <= 0) {
+    return Response.json(
+      {
+        success: false,
+        message: "Invalid project ID.",
+      },
+      { status: 400 },
+    );
+  }
+
+  // Step 2: Parse the request body safely.
+  let body: unknown;
+
   try {
-    // Read the ID from the URL.
-    const { id } = await context.params;
-    const projectId = Number(id);
+    body = await request.json();
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        message: "Request body must contain valid JSON.",
+      },
+      { status: 400 },
+    );
+  }
 
-    // Reject IDs that are not positive integers.
-    if (!Number.isInteger(projectId) || projectId <= 0) {
-      return Response.json(
-        { success: false, message: "Invalid project ID." },
-        { status: 400 },
-      );
-    }
+  // Step 3: Validate the fields being updated.
+  const validation = updateProjectSchema.safeParse(body);
 
-    // Read the changes sent by the client.
-    const body = await request.json();
+  if (!validation.success) {
+    return Response.json(
+      {
+        success: false,
+        message: "Invalid project data.",
+        errors: validation.error.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        })),
+      },
+      { status: 400 },
+    );
+  }
 
-    // Update only the project whose ID matches.
+  try {
+    // Step 4: Update only the validated fields.
     const [updatedProject] = await db
       .update(projects)
       .set({
-        name: body.name,
-        description: body.description,
-        status: body.status,
+        ...validation.data,
         updatedAt: new Date(),
       })
       .where(eq(projects.id, projectId))
       .returning();
 
-    // No returned row means that ID does not exist.
+    // Step 5: Handle a project ID that does not exist.
     if (!updatedProject) {
       return Response.json(
-        { success: false, message: "Project not found." },
+        {
+          success: false,
+          message: "Project not found.",
+        },
         { status: 404 },
       );
     }
@@ -53,7 +88,10 @@ export async function PATCH(
     console.error("Failed to update project:", error);
 
     return Response.json(
-      { success: false, message: "Failed to update project." },
+      {
+        success: false,
+        message: "Failed to update project.",
+      },
       { status: 500 },
     );
   }

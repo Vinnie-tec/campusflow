@@ -1,8 +1,9 @@
-
 import { desc } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
+
+import { createProjectSchema } from "@/lib/validations/project";
 
 // This GET handler responds to requests sent to /api/projects.
 export async function GET() {
@@ -37,21 +38,45 @@ export async function GET() {
 
 // POST: Create a new project.
 export async function POST(request: Request) {
-  try {
-    // Read the JSON data sent by the client.
-    const body = await request.json();
+  // First, parse the incoming JSON.
+  let body: unknown;
 
-    // Insert the new project into PostgreSQL.
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        message: "Request body must contain valid JSON.",
+      },
+      { status: 400 },
+    );
+  }
+
+  // Validate the data before touching the database.
+  const validation = createProjectSchema.safeParse(body);
+
+  if (!validation.success) {
+    return Response.json(
+      {
+        success: false,
+        message: "Invalid project data.",
+        errors: validation.error.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        })),
+      },
+      { status: 400 },
+    );
+  }
+
+  try {
+    // Use validated data, never the original untrusted body.
     const [newProject] = await db
       .insert(projects)
-      .values({
-        name: body.name,
-        description: body.description,
-        status: body.status ?? "planned",
-      })
+      .values(validation.data)
       .returning();
 
-    // Return the project PostgreSQL created.
     return Response.json(
       {
         success: true,

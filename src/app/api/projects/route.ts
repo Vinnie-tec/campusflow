@@ -34,3 +34,40 @@ export async function GET() {
     );
   }
 }
+
+// POST: Create a new project.
+export async function POST(request: Request) {
+  try {
+    // Read the JSON data sent by the client.
+    const body = await request.json();
+
+    // Insert the new project into PostgreSQL.
+    const [newProject] = await db
+      .insert(projects)
+      .values({
+        name: body.name,
+        description: body.description,
+        status: body.status ?? "planned",
+      })
+      .returning();
+
+    // Return the project PostgreSQL created.
+    return Response.json(
+      {
+        success: true,
+        data: newProject,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("Failed to create project:", error);
+
+    return Response.json(
+      {
+        success: false,
+        message: "Failed to create project.",
+      },
+      { status: 500 },
+    );
+  }
+}

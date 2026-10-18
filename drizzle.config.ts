@@ -1,29 +1,25 @@
 
-import "dotenv/config";
-
+import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
 
-// -------------------------------------------------------------
-// Drizzle Kit configuration
-// -------------------------------------------------------------
-// This file tells Drizzle Kit where our schema definitions live,
-// where to write migration files, and how to reach PostgreSQL.
+// Load variables from .env.local for local CLI commands.
+dotenv.config({ path: ".env.local" });
+
 export default defineConfig({
-  // PostgreSQL schema definitions written in TypeScript.
+  // Where Drizzle reads your TypeScript table definitions.
   schema: "./src/lib/db/schema/*",
 
-  // Directory where generated SQL migrations are stored.
+  // Where generated SQL migrations are stored.
   out: "./drizzle",
 
-  // Tell Drizzle Kit which database dialect we use.
+  // We are using PostgreSQL hosted by Neon.
   dialect: "postgresql",
 
-  // Use a direct connection for migration operations when available.
-  // Fall back to DATABASE_URL if that URL is already direct.
+  // Use the direct Neon connection for migrations.
   dbCredentials: {
     url:
       process.env.DATABASE_URL_UNPOOLED ??
       process.env.DATABASE_URL ??
-      "process.env.DATABASE_URL is missing. Check your .env.local file.",
+      "",
   },
 });

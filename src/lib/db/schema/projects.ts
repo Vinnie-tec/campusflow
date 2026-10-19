@@ -27,9 +27,9 @@ export const projects = pgTable(
     // This references the text-based ID in Better Auth's user table.
     // The user who owns this project.
     // Temporarily nullable so existing projects can be handled safely.
-    ownerId: text("owner_id").references(() => user.id, {
-      onDelete: "restrict",
-    }),
+ ownerId: text("owner_id")
+  .notNull()
+  .references(() => user.id, { onDelete: "restrict" }),
 
     // Project name: required, with a maximum length of 150 characters.
     name: varchar("name", { length: 150 }).notNull(),

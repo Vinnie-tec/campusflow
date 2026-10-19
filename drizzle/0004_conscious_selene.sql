@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ALTER COLUMN "owner_id" SET NOT NULL;

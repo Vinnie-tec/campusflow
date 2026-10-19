@@ -8,7 +8,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html
+      lang="en"
+      suppressHydrationWarning={true}
+      data-new-gr-c-s-check-loaded="14.1338.0"
+      data-gr-ext-installed=""
+    >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

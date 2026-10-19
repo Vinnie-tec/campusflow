@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
@@ -11,7 +11,7 @@ import { updateProjectSchema } from "@/lib/validations/project";
 
 export async function PATCH(
   request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ ID: string }> },
 ) {
   // 1. Check whether the requester has a valid session.
   const session = await auth.api.getSession({
@@ -29,8 +29,8 @@ export async function PATCH(
     );
   }
   // Step 3: Read and validate the project ID.
-  const { id } = await context.params;
-  const projectId = Number(id);
+  const { ID } = await context.params;
+  const projectId = Number(ID);
 
   if (!Number.isInteger(projectId) || projectId <= 0) {
     return Response.json(
@@ -82,7 +82,9 @@ export async function PATCH(
         ...validation.data,
         updatedAt: new Date(),
       })
-      .where(eq(projects.id, projectId))
+      .where(
+        and(eq(projects.id, projectId), eq(projects.ownerId, session.user.id)),
+      )
       .returning();
 
     // Step 5: Handle a project ID that does not exist.
@@ -116,7 +118,7 @@ export async function PATCH(
 // DELETE: Remove one project using its ID.
 export async function DELETE(
   _request: Request,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ ID: string }> },
 ) {
   try {
     // 1. Check whether the requester has a valid session.
@@ -135,8 +137,8 @@ export async function DELETE(
       );
     }
     // Get the project ID from the URL.
-    const { id } = await context.params;
-    const projectId = Number(id);
+    const { ID } = await context.params;
+    const projectId = Number(ID);
 
     // Make sure the ID is a positive integer.
     if (!Number.isInteger(projectId) || projectId <= 0) {
@@ -147,10 +149,15 @@ export async function DELETE(
     }
 
     // Delete only the project with this ID.
-    const [deletedProject] = await db
-      .delete(projects)
-      .where(eq(projects.id, projectId))
-      .returning();
+   const [deletedProject] = await db
+  .delete(projects)
+  .where(
+    and(
+      eq(projects.id, projectId),
+      eq(projects.ownerId, session.user.id),
+    ),
+  )
+  .returning();
 
     // Check whether a project was actually deleted.
     if (!deletedProject) {

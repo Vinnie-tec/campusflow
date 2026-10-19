@@ -1,38 +1,106 @@
 import Link from "next/link";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 import NewProjectForm from "./new-project-form";
-import ProjectCardActions from "./project-card-actions";
 import { connection } from "next/server"; // 1. Import connection
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
+import ProjectStats from "./project-stats";
+
+import ProjectList from "./project-list";
+import ProjectPagination from "./project-pagination";
+
+const PAGE_SIZE = 10;
+
+type ProjectsPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
 // export const dynamic = "force-dynamic";
 // Add this line to opt out of instant-navigation prerender validation for this route:
 export const instant = false;
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: ProjectsPageProps) {
+  // Keep your existing connection(), session check,
+  // and redirect logic here.
+
+  const params = await searchParams;
+  const requestedPage = Number(params.page ?? "1");
+
+  // Only accept positive, whole-number page values.
+  const currentPage =
+    Number.isSafeInteger(requestedPage) && requestedPage > 0
+      ? requestedPage
+      : 1;
+
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
+  // We'll add the paginated database query here.
+
   await connection(); // 2. Await the connection at the top of the page
-// 1. Verify the current user's session.
-const session = await auth.api.getSession({
-  headers: await headers(),
-});
+  // 1. Verify the current user's session.
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-// 2. Send signed-out users to the login page.
-if (!session) {
-  redirect("/login");
-}
+  // 2. Send signed-out users to the login page.
+  if (!session) {
+    redirect("/login");
+  }
 
-// 3. Retrieve only projects owned by this user.
-const userProjects = await db
-  .select()
-  .from(projects)
-  .where(eq(projects.ownerId, session.user.id))
-  .orderBy(desc(projects.createdAt));
+  // Count all projects owned by the signed-in user.
+  const [result] = await db
+    .select({ total: count() })
+    .from(projects)
+    .where(eq(projects.ownerId, session.user.id));
+
+  const totalProjects = result.total;
+  const totalPages = Math.max(1, Math.ceil(totalProjects / PAGE_SIZE));
+
+  // Prevent someone from requesting a page beyond the last page.
+  const safePage = Math.min(currentPage, totalPages);
+  const safeOffset = (safePage - 1) * PAGE_SIZE;
+
+  // Fetch only the projects for this page.
+  const userProjects = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.ownerId, session.user.id))
+    .orderBy(desc(projects.createdAt), desc(projects.id))
+    .limit(PAGE_SIZE)
+    .offset(safeOffset);
+
+  // Count the signed-in user's projects, grouped by status.
+  const projectStatsByStatus = await db
+    .select({
+      status: projects.status,
+      total: count(),
+    })
+    .from(projects)
+    .where(eq(projects.ownerId, session.user.id))
+    .groupBy(projects.status);
+
+  // Convert the grouped database results into easy-to-use values.
+
+  const plannedProjects =
+    projectStatsByStatus.find((item) => item.status === "planned")?.total ?? 0;
+
+  const inProgressProjects =
+    projectStatsByStatus.find((item) => item.status === "in-progress")?.total ??
+    0;
+
+  const completedProjects =
+    projectStatsByStatus.find((item) => item.status === "completed")?.total ??
+    0;
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -100,66 +168,17 @@ const userProjects = await db
           aria-labelledby="projects-heading"
           className="mx-auto max-w-5xl pb-12 sm:pb-16 lg:pb-20"
         >
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2
-                id="projects-heading"
-                className="text-2xl font-semibold tracking-tight"
-              >
-                All projects
-              </h2>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Your projects, all in one place.
-              </p>
-            </div>
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600">
-              {userProjects.length}{" "}
-              {userProjects.length === 1 ? "project" : "projects"}
-            </span>
-          </div>
+          <ProjectList projects={userProjects} />
 
-          {userProjects.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center">
-              <p className="font-semibold text-slate-700">No projects yet</p>
-              <p className="mt-1.5 text-sm text-slate-500">
-                Create your first project using the form above.
-              </p>
-            </div>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {userProjects.map((project) => (
-                <li
-                  key={project.id}
-                  className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="wrap-break-word font-semibold tracking-tight">
-                      {project.name}
-                    </h3>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        project.status === "completed"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : project.status === "in-progress"
-                            ? "bg-indigo-50 text-indigo-700"
-                            : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {project.status === "in-progress"
-                        ? "In progress"
-                        : project.status.charAt(0).toUpperCase() +
-                          project.status.slice(1)}
-                    </span>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-slate-600">
-                    {project.description || "No description provided."}
-                  </p>
-                  <ProjectCardActions project={project} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ProjectPagination currentPage={safePage} totalPages={totalPages} />
         </section>
+
+        <ProjectStats
+          total={totalProjects}
+          planned={plannedProjects}
+          inProgress={inProgressProjects}
+          completed={completedProjects}
+        />
       </div>
     </main>
   );

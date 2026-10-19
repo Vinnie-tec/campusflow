@@ -1,9 +1,14 @@
-import { desc } from "drizzle-orm";
 import Link from "next/link";
+import { eq, desc } from "drizzle-orm";
+
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 import NewProjectForm from "./new-project-form";
 import { connection } from "next/server"; // 1. Import connection
+
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 
 // export const dynamic = "force-dynamic";
 // Add this line to opt out of instant-navigation prerender validation for this route:
@@ -11,10 +16,22 @@ export const instant = false;
 
 export default async function ProjectsPage() {
   await connection(); // 2. Await the connection at the top of the page
-  const allProjects = await db
-    .select()
-    .from(projects)
-    .orderBy(desc(projects.createdAt));
+// 1. Verify the current user's session.
+const session = await auth.api.getSession({
+  headers: await headers(),
+});
+
+// 2. Send signed-out users to the login page.
+if (!session) {
+  redirect("/login");
+}
+
+// 3. Retrieve only projects owned by this user.
+const userProjects = await db
+  .select()
+  .from(projects)
+  .where(eq(projects.ownerId, session.user.id))
+  .orderBy(desc(projects.createdAt));
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -95,12 +112,12 @@ export default async function ProjectsPage() {
               </p>
             </div>
             <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600">
-              {allProjects.length}{" "}
-              {allProjects.length === 1 ? "project" : "projects"}
+              {userProjects.length}{" "}
+              {userProjects.length === 1 ? "project" : "projects"}
             </span>
           </div>
 
-          {allProjects.length === 0 ? (
+          {userProjects.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center">
               <p className="font-semibold text-slate-700">No projects yet</p>
               <p className="mt-1.5 text-sm text-slate-500">
@@ -109,7 +126,7 @@ export default async function ProjectsPage() {
             </div>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2">
-              {allProjects.map((project) => (
+              {userProjects.map((project) => (
                 <li
                   key={project.id}
                   className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md"

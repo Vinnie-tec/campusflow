@@ -1,7 +1,9 @@
 
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 import { createProjectSchema } from "@/lib/validations/project";
@@ -19,13 +21,26 @@ export async function createProject(
   _previousState: CreateProjectState,
   formData: FormData,
 ): Promise<CreateProjectState> {
-  // Collect the values submitted by the form.
+  // 1. Verify the user's session.
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // 2. Stop if the user is not logged in.
+  if (!session) {
+    return {
+      success: false,
+      message: "You must be logged in to create a project.",
+    };
+  }
+
+  // 3. Collect the values submitted by the form.
   const rawData = {
     name: formData.get("name"),
     description: formData.get("description") || null,
   };
 
-  // Validate the data on the server.
+  // 4. Validate the submitted data on the server.
   const validation = createProjectSchema.safeParse(rawData);
 
   if (!validation.success) {
@@ -42,10 +57,13 @@ export async function createProject(
   }
 
   try {
-    // Save the validated project.
-    await db.insert(projects).values(validation.data);
+    // 5. Save the project and assign its authenticated owner.
+    await db.insert(projects).values({
+      ...validation.data,
+      ownerId: session.user.id,
+    });
 
-    // Refresh the projects page after a successful insert.
+    // 6. Refresh the projects page after a successful insert.
     revalidatePath("/projects");
 
     return {

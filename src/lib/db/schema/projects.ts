@@ -8,6 +8,8 @@ import {
   check,
 } from "drizzle-orm/pg-core";
 
+import { user } from "./auth";
+
 // -------------------------------------------------------------
 // PROJECTS TABLE
 // -------------------------------------------------------------
@@ -20,6 +22,14 @@ export const projects = pgTable(
     // Primary key: a unique identifier for each project.
     // PostgreSQL automatically generates the next integer value.
     id: serial("id").primaryKey(),
+
+    // The user who owns this project.
+    // This references the text-based ID in Better Auth's user table.
+    // The user who owns this project.
+    // Temporarily nullable so existing projects can be handled safely.
+    ownerId: text("owner_id").references(() => user.id, {
+      onDelete: "restrict",
+    }),
 
     // Project name: required, with a maximum length of 150 characters.
     name: varchar("name", { length: 150 }).notNull(),

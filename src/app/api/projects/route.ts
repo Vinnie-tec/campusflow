@@ -102,7 +102,10 @@ export async function POST(request: Request) {
     // Use validated data, never the original untrusted body.
     const [newProject] = await db
       .insert(projects)
-      .values(validation.data)
+      .values({
+        ...validation.data,
+        ownerId: session.user.id,
+      })
       .returning();
 
     return Response.json(

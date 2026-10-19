@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { projects as projectsTable } from "@/lib/db/schema/projects";
 import ProjectCardActions from "./project-card-actions";
+import Link from "next/link";
 
 type Project = typeof projectsTable.$inferSelect;
 
@@ -106,9 +107,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
       {filteredProjects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center">
           <p className="font-semibold text-slate-700">
-            {projects.length === 0
-              ? "No projects yet"
-              : "No matching projects"}
+            {projects.length === 0 ? "No projects yet" : "No matching projects"}
           </p>
 
           <p className="mt-1.5 text-sm text-slate-500">
@@ -139,7 +138,12 @@ export default function ProjectList({ projects }: ProjectListProps) {
             >
               <div className="flex items-start justify-between gap-4">
                 <h3 className="wrap-break-word font-semibold tracking-tight">
-                  {project.name}
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="transition hover:text-brand"
+                  >
+                    {project.name}
+                  </Link>
                 </h3>
 
                 <span

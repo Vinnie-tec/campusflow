@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
@@ -27,14 +27,15 @@ export async function GET(request: Request) {
 
   // Step 3: Only authenticated users reach this database query.
   try {
-    const allProjects = await db
+    const userProjects = await db
       .select()
       .from(projects)
+      .where(eq(projects.ownerId, session.user.id))
       .orderBy(desc(projects.createdAt));
 
     return Response.json({
       success: true,
-      data: allProjects,
+      data: userProjects,
     });
   } catch (error) {
     console.error("Failed to fetch projects:", error);

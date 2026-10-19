@@ -15,6 +15,13 @@
       "when": 1792365310166,
       "tag": "0001_chilly_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792372361797,
+      "tag": "0002_sticky_scalphunter",
+      "breakpoints": true
     }
   ]
 }

@@ -3,29 +3,42 @@ import { desc } from "drizzle-orm";
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 
+import { auth } from "@/lib/auth";
+
 import { createProjectSchema } from "@/lib/validations/project";
 
 // This GET handler responds to requests sent to /api/projects.
-export async function GET() {
+export async function GET(request: Request) {
+  // Step 1: Ask Better Auth to identify the user from this request's headers.
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  // Step 2: Reject the request if there is no valid session.
+  if (!session) {
+    return Response.json(
+      {
+        success: false,
+        message: "You must be logged in to view projects.",
+      },
+      { status: 401 },
+    );
+  }
+
+  // Step 3: Only authenticated users reach this database query.
   try {
-    // Ask PostgreSQL for the projects using Drizzle.
-    // Newest projects appear first.
     const allProjects = await db
       .select()
       .from(projects)
       .orderBy(desc(projects.createdAt));
 
-    // Return the database results as JSON.
     return Response.json({
       success: true,
       data: allProjects,
     });
   } catch (error) {
-    // Log the real error on the server for debugging.
     console.error("Failed to fetch projects:", error);
 
-    // Send a generic message to the client.
-    // Avoid exposing database details to the caller.
     return Response.json(
       {
         success: false,
@@ -35,9 +48,24 @@ export async function GET() {
     );
   }
 }
-
 // POST: Create a new project.
 export async function POST(request: Request) {
+  // 1. Check whether the requester has a valid session.
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  // 2. Reject the request if the requester is not logged in.
+  if (!session) {
+    return Response.json(
+      {
+        success: false,
+        message: "You must be logged in to create a project.",
+      },
+      { status: 401 },
+    );
+  }
+
   // First, parse the incoming JSON.
   let body: unknown;
 

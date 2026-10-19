@@ -1,8 +1,9 @@
-
 import { eq } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
+
+import { auth } from "@/lib/auth";
 
 import { updateProjectSchema } from "@/lib/validations/project";
 
@@ -12,7 +13,22 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  // Step 1: Read and validate the project ID.
+  // 1. Check whether the requester has a valid session.
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  // 2. Stop if the requester is not logged in.
+  if (!session) {
+    return Response.json(
+      {
+        success: false,
+        message: "You must be logged in to update a project.",
+      },
+      { status: 401 },
+    );
+  }
+  // Step 3: Read and validate the project ID.
   const { id } = await context.params;
   const projectId = Number(id);
 
@@ -103,6 +119,21 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    // 1. Check whether the requester has a valid session.
+    const session = await auth.api.getSession({
+      headers: _request.headers,
+    });
+
+    // 2. Reject the request if the requester is not logged in.
+    if (!session) {
+      return Response.json(
+        {
+          success: false,
+          message: "You must be logged in to delete a project.",
+        },
+        { status: 401 },
+      );
+    }
     // Get the project ID from the URL.
     const { id } = await context.params;
     const projectId = Number(id);
@@ -143,4 +174,3 @@ export async function DELETE(
     );
   }
 }
-

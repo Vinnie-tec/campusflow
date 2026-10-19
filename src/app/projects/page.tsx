@@ -4,6 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 import NewProjectForm from "./new-project-form";
+import ProjectCardActions from "./project-card-actions";
 import { connection } from "next/server"; // 1. Import connection
 
 import { headers } from "next/headers";
@@ -153,6 +154,7 @@ const userProjects = await db
                   <p className="mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-slate-600">
                     {project.description || "No description provided."}
                   </p>
+                  <ProjectCardActions project={project} />
                 </li>
               ))}
             </ul>

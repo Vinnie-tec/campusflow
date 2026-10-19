@@ -43,6 +43,13 @@
       "when": 1792425439450,
       "tag": "0005_spooky_lily_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792426521914,
+      "tag": "0006_slim_the_hood",
+      "breakpoints": true
     }
   ]
 }

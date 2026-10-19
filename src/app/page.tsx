@@ -46,8 +46,8 @@ export default function Home() {
           </div>
 
           <div className="relative mx-auto w-full max-w-lg">
-            <div className="absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-indigo-100 via-sky-50 to-amber-50 blur-2xl" />
-            <div className="relative rounded-[2rem] border border-white bg-white/90 p-5 shadow-2xl shadow-indigo-950/10 sm:p-7">
+            <div className="absolute -inset-5 rounded-[2.5rem] bg-linear-to-br from-indigo-100 via-sky-50 to-amber-50 blur-2xl" />
+            <div className="relative rounded-4xl border border-white bg-white/90 p-5 shadow-2xl shadow-indigo-950/10 sm:p-7">
               <div className="flex items-center justify-between border-b border-slate-100 pb-5">
                 <div>
                   <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">

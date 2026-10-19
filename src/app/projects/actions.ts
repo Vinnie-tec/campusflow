@@ -6,37 +6,46 @@ import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
 import { createProjectSchema } from "@/lib/validations/project";
 
-type CreateProjectState = {
+export type CreateProjectState = {
   success: boolean;
   message: string;
+  errors?: {
+    name?: string[];
+    description?: string[];
+  };
 };
 
 export async function createProject(
   _previousState: CreateProjectState,
   formData: FormData,
 ): Promise<CreateProjectState> {
-  // 1. Read the submitted form fields.
+  // Collect the values submitted by the form.
   const rawData = {
     name: formData.get("name"),
     description: formData.get("description") || null,
   };
 
-  // 2. Validate the data before writing to the database.
+  // Validate the data on the server.
   const validation = createProjectSchema.safeParse(rawData);
 
   if (!validation.success) {
+    const fieldErrors = validation.error.flatten().fieldErrors;
+
     return {
       success: false,
-      message: validation.error.issues[0]?.message
-        ?? "Please check your project details.",
+      message: "Please correct the errors below.",
+      errors: {
+        name: fieldErrors.name,
+        description: fieldErrors.description,
+      },
     };
   }
 
-  // 3. Save the validated data.
   try {
+    // Save the validated project.
     await db.insert(projects).values(validation.data);
 
-    // 4. Refresh cached data for the projects page.
+    // Refresh the projects page after a successful insert.
     revalidatePath("/projects");
 
     return {

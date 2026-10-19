@@ -39,7 +39,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
       aria-labelledby="projects-heading"
       className="mx-auto max-w-5xl pb-12 sm:pb-16 lg:pb-20"
     >
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      {/* <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2
             id="projects-heading"
@@ -57,10 +57,10 @@ export default function ProjectList({ projects }: ProjectListProps) {
           {filteredProjects.length === 1 ? "project" : "projects"}
           {hasFilters ? ` of ${projects.length}` : ""}
         </span>
-      </div>
+      </div> */}
 
       {/* Search and status filter */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+      {/* <div className="mb-6 flex flex-col gap-4 sm:flex-row">
         <div className="flex-1">
           <label
             htmlFor="project-search"
@@ -101,7 +101,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
             <option value="completed">Completed</option>
           </select>
         </div>
-      </div>
+      </div> */}
 
       {filteredProjects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center">

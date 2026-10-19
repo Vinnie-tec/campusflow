@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
-import { eq, desc, count } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { projects } from "@/lib/db/schema/projects";
@@ -16,11 +15,15 @@ import ProjectStats from "./project-stats";
 import ProjectList from "./project-list";
 import ProjectPagination from "./project-pagination";
 
-const PAGE_SIZE = 10;
+import ProjectFilters from "./project-filters";
+
+const PAGE_SIZE = 2;
 
 type ProjectsPageProps = {
   searchParams: Promise<{
     page?: string;
+    q?: string;
+    status?: string;
   }>;
 };
 
@@ -35,15 +38,25 @@ export default async function ProjectsPage({
   // and redirect logic here.
 
   const params = await searchParams;
+
+  // Search text from ?q=...
+  const query = (params.q ?? "").trim().slice(0, 150);
+
+  // Accept only valid project statuses.
+  const status =
+    params.status === "planned" ||
+    params.status === "in-progress" ||
+    params.status === "completed"
+      ? params.status
+      : undefined;
+
+  // Validate the requested page number.
   const requestedPage = Number(params.page ?? "1");
 
-  // Only accept positive, whole-number page values.
   const currentPage =
     Number.isSafeInteger(requestedPage) && requestedPage > 0
       ? requestedPage
       : 1;
-
-  const offset = (currentPage - 1) * PAGE_SIZE;
 
   // We'll add the paginated database query here.
 
@@ -58,24 +71,57 @@ export default async function ProjectsPage({
     redirect("/login");
   }
 
-  // Count all projects owned by the signed-in user.
-  const [result] = await db
+  // Always restrict results to the authenticated user.
+  const conditions: SQL[] = [eq(projects.ownerId, session.user.id)];
+
+  // Match the search text against project name or description.
+  if (query) {
+    const searchCondition = or(
+      ilike(projects.name, `%${query}%`),
+      ilike(projects.description, `%${query}%`),
+    );
+
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+  }
+
+  // Apply the selected status, if any.
+  if (status) {
+    conditions.push(eq(projects.status, status));
+  }
+
+  // Reuse these exact conditions for counting and fetching.
+  const whereClause = and(...conditions);
+
+  // Count all projects for the dashboard statistics.
+  const [allProjectsResult] = await db
     .select({ total: count() })
     .from(projects)
     .where(eq(projects.ownerId, session.user.id));
 
-  const totalProjects = result.total;
-  const totalPages = Math.max(1, Math.ceil(totalProjects / PAGE_SIZE));
+  const totalProjects = allProjectsResult.total;
 
-  // Prevent someone from requesting a page beyond the last page.
+  // Count only projects matching the current search and status.
+  const [filteredResult] = await db
+    .select({ total: count() })
+    .from(projects)
+    .where(whereClause);
+
+  const filteredTotal = filteredResult.total;
+
+  // Calculate pagination from the filtered result count.
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
+
+  // If the requested page no longer exists, use the last valid page.
   const safePage = Math.min(currentPage, totalPages);
   const safeOffset = (safePage - 1) * PAGE_SIZE;
 
-  // Fetch only the projects for this page.
+  // Fetch only the matching projects for the current page.
   const userProjects = await db
     .select()
     .from(projects)
-    .where(eq(projects.ownerId, session.user.id))
+    .where(whereClause)
     .orderBy(desc(projects.createdAt), desc(projects.id))
     .limit(PAGE_SIZE)
     .offset(safeOffset);
@@ -169,9 +215,16 @@ export default async function ProjectsPage({
           aria-labelledby="projects-heading"
           className="mx-auto max-w-5xl pb-12 sm:pb-16 lg:pb-20"
         >
+          <ProjectFilters query={query} status={status} />
+
           <ProjectList projects={userProjects} />
 
-          <ProjectPagination currentPage={safePage} totalPages={totalPages} />
+          <ProjectPagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            query={query}
+            status={status}
+          />
         </section>
 
         <ProjectStats

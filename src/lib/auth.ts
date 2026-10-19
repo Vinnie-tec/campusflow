@@ -13,5 +13,18 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+
+    // Development only: don't require email verification.
+    requireEmailVerification: false,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "student",
+        input: false, 
+      },
+    },
   },
 });

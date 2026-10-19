@@ -71,6 +71,8 @@ export default async function ProjectsPage({
     redirect("/login");
   }
 
+  console.log("Current user role:", session?.user.role);
+
   // Always restrict results to the authenticated user.
   const conditions: SQL[] = [eq(projects.ownerId, session.user.id)];
 

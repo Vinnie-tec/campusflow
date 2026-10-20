@@ -34,7 +34,8 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return Response.json(
-      { error: "Invalid JSON request body." },
+      { error: "Invalid JSON request body." }, 
+      
       { status: 400 },
     );
   }

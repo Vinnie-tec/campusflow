@@ -151,6 +151,18 @@ export default async function CoursesPage() {
                         currentStatus={course.status}
                       />
                     )}
+                  <Link
+                    href={`/courses/${course.id}`}
+                    className="mt-5 inline-flex items-center justify-center gap-2 self-start rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  >
+                    View course
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform group-hover:translate-x-0.5"
+                    >
+                      -&gt;
+                    </span>
+                  </Link>
                 </article>
               ))}
             </div>

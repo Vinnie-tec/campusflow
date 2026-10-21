@@ -1,14 +1,11 @@
-
 import { and, eq, sql } from "drizzle-orm";
 
 import db from "@/lib/db";
 import { lessons } from "@/lib/db/schema/lessons";
 import { lessonProgress } from "@/lib/db/schema/lesson-progress";
+import { calculatePercentage } from "@/lib/utils/percentage";
 
-export async function getCourseProgress(
-  courseId: number,
-  studentId: string,
-) {
+export async function getCourseProgress(courseId: number, studentId: string) {
   const [result] = await db
     .select({
       totalLessons: sql<number>`count(${lessons.id})::int`,
@@ -27,10 +24,7 @@ export async function getCourseProgress(
   const totalLessons = result.totalLessons;
   const completedLessons = result.completedLessons;
 
-  const percentage =
-    totalLessons === 0
-      ? 0
-      : Math.round((completedLessons / totalLessons) * 100);
+  const percentage = calculatePercentage(completedLessons, totalLessons);
 
   return {
     totalLessons,

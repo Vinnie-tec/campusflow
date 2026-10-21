@@ -178,6 +178,28 @@ export default async function CourseDetailPage({
                         -&gt;
                       </span>
                     </Link>
+                    {session?.user.role === "instructor" && (
+                      <Link
+                        href={`/courses/${courseId}/lessons/${lesson.id}/edit`}
+                        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                      >
+                        Edit lesson
+                      </Link>
+                    )}
+                    {session?.user.role === "instructor" && (
+                      <Link
+                        href={`/courses/${courseId}/lessons/new`}
+                        className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20 transition hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="text-base leading-none"
+                        >
+                          +
+                        </span>
+                        Add lesson
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ol>

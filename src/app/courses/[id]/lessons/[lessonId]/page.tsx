@@ -1,4 +1,3 @@
-
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -8,6 +7,11 @@ import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { courses } from "@/lib/db/schema/courses";
 import { lessons } from "@/lib/db/schema/lessons";
+
+import MarkCompleteButton from "./mark-complete-button";
+
+import { enrollments } from "@/lib/db/schema/enrollments";
+import { lessonProgress } from "@/lib/db/schema/lesson-progress";
 
 export const instant = false;
 
@@ -43,14 +47,8 @@ export default async function LessonDetailPage({
   // 4. Build the course access condition.
   const courseCondition =
     session?.user.role === "instructor"
-      ? and(
-          eq(courses.id, courseId),
-          eq(courses.instructorId, session.user.id),
-        )
-      : and(
-          eq(courses.id, courseId),
-          eq(courses.status, "published"),
-        );
+      ? and(eq(courses.id, courseId), eq(courses.instructorId, session.user.id))
+      : and(eq(courses.id, courseId), eq(courses.status, "published"));
 
   // 5. Confirm the user can access this course.
   const [course] = await db
@@ -67,16 +65,44 @@ export default async function LessonDetailPage({
   const [lesson] = await db
     .select()
     .from(lessons)
-    .where(
-      and(
-        eq(lessons.id, lessonIdNumber),
-        eq(lessons.courseId, courseId),
-      ),
-    )
+    .where(and(eq(lessons.id, lessonIdNumber), eq(lessons.courseId, courseId)))
     .limit(1);
 
   if (!lesson) {
     notFound();
+  }
+
+  let isEnrolled = false;
+  let isCompleted = false;
+
+  if (session?.user.role === "student") {
+    const [enrollment] = await db
+      .select({ id: enrollments.id })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.studentId, session.user.id),
+          eq(enrollments.courseId, courseId),
+        ),
+      )
+      .limit(1);
+
+    isEnrolled = Boolean(enrollment);
+
+    if (isEnrolled) {
+      const [progress] = await db
+        .select({ id: lessonProgress.id })
+        .from(lessonProgress)
+        .where(
+          and(
+            eq(lessonProgress.studentId, session.user.id),
+            eq(lessonProgress.lessonId, lessonIdNumber),
+          ),
+        )
+        .limit(1);
+
+      isCompleted = Boolean(progress);
+    }
   }
 
   return (
@@ -113,7 +139,9 @@ export default async function LessonDetailPage({
             <span className="mx-2 text-slate-400" aria-hidden="true">
               /
             </span>
-            <span className="text-sm text-slate-500">Lesson {lesson.position}</span>
+            <span className="text-sm text-slate-500">
+              Lesson {lesson.position}
+            </span>
           </nav>
 
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-3.5 py-1.5 text-xs font-semibold tracking-wide text-brand shadow-sm">
@@ -137,6 +165,26 @@ export default async function LessonDetailPage({
               </p>
             </div>
           </article>
+
+          {session?.user.role === "student" && isEnrolled && (
+            <MarkCompleteButton
+              courseId={courseId}
+              lessonId={lessonIdNumber}
+              initialCompleted={isCompleted}
+            />
+          )}
+
+          {session?.user.role === "student" && !isEnrolled && (
+            <p className="mt-8 text-sm text-slate-600">
+              Enroll in this course to track your lesson progress.{" "}
+              <Link
+                href={`/courses/${courseId}`}
+                className="font-semibold text-brand underline"
+              >
+                View course
+              </Link>
+            </p>
+          )}
 
           <div className="mt-6">
             <Link

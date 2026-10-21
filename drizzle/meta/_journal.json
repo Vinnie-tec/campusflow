@@ -50,6 +50,13 @@
       "when": 1792426521914,
       "tag": "0006_slim_the_hood",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792599103801,
+      "tag": "0007_absurd_wolfpack",
+      "breakpoints": true
     }
   ]
 }

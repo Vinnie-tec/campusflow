@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
+import CourseStatusButton from "./course-status-button";
 
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
@@ -142,6 +143,14 @@ export default async function CoursesPage() {
                       </span>
                     </div>
                   )}
+                  {session?.user.role === "instructor" &&
+                    (course.status === "draft" ||
+                      course.status === "published") && (
+                      <CourseStatusButton
+                        courseId={course.id}
+                        currentStatus={course.status}
+                      />
+                    )}
                 </article>
               ))}
             </div>

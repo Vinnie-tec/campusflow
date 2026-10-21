@@ -64,6 +64,13 @@
       "when": 1792620051950,
       "tag": "0008_ambiguous_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792621494959,
+      "tag": "0009_left_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

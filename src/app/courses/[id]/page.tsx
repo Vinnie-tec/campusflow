@@ -1,8 +1,9 @@
-
-import { and, eq } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { lessons } from "@/lib/db/schema/lessons";
 
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
@@ -30,26 +31,23 @@ export default async function CourseDetailPage({
   });
 
   // 4. Find the course the user is allowed to view.
-  const conditions = session?.user.role === "instructor"
-    ? and(
-        eq(courses.id, courseId),
-        eq(courses.instructorId, session.user.id),
-      )
-    : and(
-        eq(courses.id, courseId),
-        eq(courses.status, "published"),
-      );
+  const conditions =
+    session?.user.role === "instructor"
+      ? and(eq(courses.id, courseId), eq(courses.instructorId, session.user.id))
+      : and(eq(courses.id, courseId), eq(courses.status, "published"));
 
-  const [course] = await db
-    .select()
-    .from(courses)
-    .where(conditions)
-    .limit(1);
+  const [course] = await db.select().from(courses).where(conditions).limit(1);
 
   // 5. Show the 404 page if no accessible course exists.
   if (!course) {
     notFound();
   }
+
+  const courseLessons = await db
+    .select()
+    .from(lessons)
+    .where(eq(lessons.courseId, courseId))
+    .orderBy(asc(lessons.position));
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -115,6 +113,76 @@ export default async function CourseDetailPage({
               </p>
             </div>
           </article>
+
+          <section
+            aria-labelledby="course-lessons-heading"
+            className="mt-10 sm:mt-12"
+          >
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-brand">
+                  COURSE CONTENT
+                </p>
+                <h2
+                  id="course-lessons-heading"
+                  className="mt-1 text-2xl font-semibold tracking-tight"
+                >
+                  Course lessons
+                </h2>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+                {courseLessons.length}{" "}
+                {courseLessons.length === 1 ? "lesson" : "lessons"}
+              </span>
+            </div>
+
+            {courseLessons.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center">
+                <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-indigo-50 text-xl text-brand">
+                  +
+                </span>
+                <p className="mt-4 text-sm font-semibold text-slate-700">
+                  No lessons yet
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  No lessons have been added to this course yet.
+                </p>
+              </div>
+            ) : (
+              <ol className="space-y-3">
+                {courseLessons.map((lesson) => (
+                  <li
+                    key={lesson.id}
+                    className="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg hover:shadow-slate-900/5 sm:p-5"
+                  >
+                    <div className="flex min-w-0 items-center gap-4">
+                      <span
+                        aria-hidden="true"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-sm font-bold text-brand transition group-hover:bg-brand group-hover:text-white"
+                      >
+                        {lesson.position}
+                      </span>
+                      <h3 className="truncate text-base font-semibold tracking-tight text-ink sm:text-lg">
+                        {lesson.title}
+                      </h3>
+                    </div>
+                    <Link
+                      href={`/courses/${courseId}/lessons/${lesson.id}`}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-brand transition hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    >
+                      Open lesson
+                      <span
+                        aria-hidden="true"
+                        className="transition-transform group-hover:translate-x-0.5"
+                      >
+                        -&gt;
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
         </div>
       </div>
     </main>

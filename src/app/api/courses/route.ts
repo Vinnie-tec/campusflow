@@ -6,7 +6,7 @@ import db from "@/lib/db";
 import { courses } from "@/lib/db/schema/courses";
 import { createCourseSchema } from "@/lib/validations/course";
 
-import { and, desc, eq, or } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export async function GET() {
   // 1. Identify the currently logged-in user.

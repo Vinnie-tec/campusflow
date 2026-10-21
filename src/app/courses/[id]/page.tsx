@@ -11,6 +11,8 @@ import { courses } from "@/lib/db/schema/courses";
 import EnrollButton from "./enroll-button";
 import { enrollments } from "@/lib/db/schema/enrollments";
 
+import { getCourseProgress } from "@/lib/queries/course-progress";
+
 export const instant = false;
 
 export default async function CourseDetailPage({
@@ -67,6 +69,12 @@ export default async function CourseDetailPage({
     .from(lessons)
     .where(eq(lessons.courseId, courseId))
     .orderBy(asc(lessons.position));
+
+  let progress = null;
+
+  if (session?.user.role === "student" && isEnrolled) {
+    progress = await getCourseProgress(courseId, session.user.id);
+  }
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -135,6 +143,40 @@ export default async function CourseDetailPage({
 
           {session?.user.role === "student" && (
             <EnrollButton courseId={courseId} initialEnrolled={isEnrolled} />
+          )}
+
+          {progress && (
+            <section className="my-8 rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    Your learning progress
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {progress.completedLessons} of {progress.totalLessons}{" "}
+                    lessons completed
+                  </p>
+                </div>
+
+                <span className="text-2xl font-bold">
+                  {progress.percentage}%
+                </span>
+              </div>
+
+              <div
+                className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100"
+                role="progressbar"
+                aria-label="Course completion"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress.percentage}
+              >
+                <div
+                  className="h-full rounded-full bg-brand transition-all duration-300"
+                  style={{ width: `${progress.percentage}%` }}
+                />
+              </div>
+            </section>
           )}
 
           {!session && (

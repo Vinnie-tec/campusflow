@@ -8,6 +8,8 @@ import { lessons } from "@/lib/db/schema/lessons";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { courses } from "@/lib/db/schema/courses";
+import EnrollButton from "./enroll-button";
+import { enrollments } from "@/lib/db/schema/enrollments";
 
 export const instant = false;
 
@@ -41,6 +43,23 @@ export default async function CourseDetailPage({
   // 5. Show the 404 page if no accessible course exists.
   if (!course) {
     notFound();
+  }
+
+  let isEnrolled = false;
+
+  if (session?.user.role === "student") {
+    const [enrollment] = await db
+      .select({ id: enrollments.id })
+      .from(enrollments)
+      .where(
+        and(
+          eq(enrollments.studentId, session.user.id),
+          eq(enrollments.courseId, courseId),
+        ),
+      )
+      .limit(1);
+
+    isEnrolled = Boolean(enrollment);
   }
 
   const courseLessons = await db
@@ -113,6 +132,19 @@ export default async function CourseDetailPage({
               </p>
             </div>
           </article>
+
+          {session?.user.role === "student" && (
+            <EnrollButton courseId={courseId} initialEnrolled={isEnrolled} />
+          )}
+
+          {!session && (
+            <Link
+              href="/login"
+              className="my-6 inline-flex rounded-xl border px-5 py-3 font-semibold"
+            >
+              Log in to enroll
+            </Link>
+          )}
 
           <section
             aria-labelledby="course-lessons-heading"

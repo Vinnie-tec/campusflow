@@ -6,6 +6,38 @@ import db from "@/lib/db";
 import { courses } from "@/lib/db/schema/courses";
 import { createCourseSchema } from "@/lib/validations/course";
 
+import { and, desc, eq, or } from "drizzle-orm";
+
+export async function GET() {
+  // 1. Identify the currently logged-in user.
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // 2. Retrieve courses according to the user's role.
+  if (session?.user.role === "instructor") {
+    // Instructors can see their own drafts and published courses.
+    const instructorCourses = await db
+      .select()
+      .from(courses)
+      .where(eq(courses.instructorId, session.user.id))
+      .orderBy(desc(courses.createdAt));
+
+      
+    return Response.json({ courses: instructorCourses });
+  }
+
+  // Students and logged-out visitors see published courses only.
+  const publishedCourses = await db
+    .select()
+    .from(courses)
+    .where(eq(courses.status, "published"))
+    .orderBy(desc(courses.createdAt));
+
+  return Response.json({ courses: publishedCourses });
+}
+
+
 export async function POST(request: Request) {
   // 1. Check whether the requester is logged in.
   const session = await auth.api.getSession({

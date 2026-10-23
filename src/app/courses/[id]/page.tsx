@@ -12,6 +12,8 @@ import EnrollButton from "./enroll-button";
 import { enrollments } from "@/lib/db/schema/enrollments";
 
 import { getCourseProgress } from "@/lib/queries/course-progress";
+import { getCourseReviewSummary } from "@/lib/queries/course-review-summary";
+import { getCourseReviews } from "@/lib/queries/course-reviews";
 
 export const instant = false;
 
@@ -76,6 +78,11 @@ export default async function CourseDetailPage({
     progress = await getCourseProgress(courseId, session.user.id);
   }
 
+  const [reviewSummary, reviews] = await Promise.all([
+    getCourseReviewSummary(courseId),
+    getCourseReviews(courseId),
+  ]);
+
   return (
     <main className="min-h-dvh bg-canvas text-ink">
       <div className="mx-auto max-w-6xl px-6 sm:px-10">
@@ -97,6 +104,58 @@ export default async function CourseDetailPage({
             Back to courses
           </Link>
         </header>
+
+        <section aria-labelledby="reviews-heading" className="mt-10">
+          <h2 id="reviews-heading" className="text-2xl font-semibold">
+            Student Reviews
+          </h2>
+
+          <div className="mt-3">
+            <p>
+              <span
+                aria-label={`${reviewSummary.averageRating} out of 5 stars`}
+              >
+                {"★".repeat(Math.round(reviewSummary.averageRating))}
+                {"☆".repeat(5 - Math.round(reviewSummary.averageRating))}
+              </span>{" "}
+              <strong>{reviewSummary.averageRating.toFixed(1)} / 5</strong>
+            </p>
+
+            <p className="text-sm text-slate-600">
+              {reviewSummary.totalReviews}{" "}
+              {reviewSummary.totalReviews === 1 ? "review" : "reviews"}
+            </p>
+          </div>
+
+          {reviews.length === 0 ? (
+            <p className="mt-5">
+              No reviews yet. Be the first to share your experience!
+            </p>
+          ) : (
+            <ul className="mt-5 space-y-5">
+              {reviews.map((review) => (
+                <li key={review.id} className="border-b border-slate-200 pb-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{review.studentName}</p>
+
+                    <span aria-label={`${review.rating} out of 5 stars`}>
+                      {"★".repeat(review.rating)}
+                      {"☆".repeat(5 - review.rating)}
+                    </span>
+                  </div>
+
+                  {review.comment && (
+                    <p className="mt-2 whitespace-pre-wrap">{review.comment}</p>
+                  )}
+
+                  <p className="mt-2 text-sm text-slate-500">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <div className="mx-auto max-w-4xl py-12 sm:py-16">
           <div className="mb-6">

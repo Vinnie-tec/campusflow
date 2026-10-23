@@ -1,38 +1,29 @@
 
 import "server-only";
 
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 
-// -------------------------------------------------------------
-// 1. Read the database connection string from the environment.
-// -------------------------------------------------------------
-// Never hardcode your database password in application code.
-// Next.js loads .env.local automatically during local development.
+// Read the connection string from .env.local.
+// Never hardcode database credentials in source code.
 const connectionString = process.env.DATABASE_URL;
 
-// Fail early if the required environment variable is missing.
-// This makes configuration problems easier to identify.
 if (!connectionString) {
   throw new Error(
     "DATABASE_URL is missing. Check your .env.local file.",
   );
 }
 
-// -------------------------------------------------------------
-// 2. Create the Neon SQL client.
-// -------------------------------------------------------------
-// The Neon client communicates with the hosted PostgreSQL
-// database using Neon's HTTP-based serverless driver.
-const sql = neon(connectionString);
+// Create a PostgreSQL connection pool.
+// A pool manages reusable database connections instead of
+// opening a brand-new connection for every query.
+const pool = new Pool({
+  connectionString,
+});
 
-// -------------------------------------------------------------
-// 3. Initialize Drizzle ORM.
-// -------------------------------------------------------------
-// Drizzle uses the Neon client to execute typed database queries.
-// We will import this shared instance wherever server-side
-// database access is required.
-const db = drizzle({ client: sql });
+// Initialize Drizzle using the node-postgres driver.
+// Unlike the Neon HTTP driver, this driver supports transactions.
+const db = drizzle(pool);
 
-// Export the database instance for server-side modules.
+// Export the shared database instance for server-side code.
 export default db;

@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Option = {
   optionText: string;
@@ -12,6 +11,12 @@ type AssessmentBuilderProps = {
   courseId: number;
 };
 
+type ExistingAssessment = {
+  id: number;
+  title: string;
+  status: "draft" | "published";
+};
+
 export default function AssessmentBuilder({
   courseId,
 }: AssessmentBuilderProps) {
@@ -20,6 +25,10 @@ export default function AssessmentBuilder({
   const [passingScore, setPassingScore] = useState(50);
 
   const [assessmentId, setAssessmentId] = useState<number | null>(null);
+
+  const [existingAssessments, setExistingAssessments] = useState<
+    ExistingAssessment[]
+  >([]);
 
   const [questionText, setQuestionText] = useState("");
   const [points, setPoints] = useState(1);
@@ -33,6 +42,31 @@ export default function AssessmentBuilder({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<
+    number | null
+  >(null);
+
+  useEffect(() => {
+    async function loadAssessments() {
+      try {
+        const response = await fetch(`/api/courses/${courseId}/assessments`);
+
+        if (!response.ok) {
+          throw new Error("Could not load assessments.");
+        }
+
+        const data = await response.json();
+
+        setExistingAssessments(data.assessments ?? []);
+      } catch (error) {
+        console.error("Failed to load assessments:", error);
+      }
+    }
+
+    loadAssessments();
+  }, [courseId]);
 
   async function createAssessment() {
     setLoading(true);
@@ -40,18 +74,15 @@ export default function AssessmentBuilder({
     setMessage("");
 
     try {
-      const response = await fetch(
-        `/api/courses/${courseId}/assessments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title,
-            instructions,
-            passingScore,
-          }),
-        }
-      );
+      const response = await fetch(`/api/courses/${courseId}/assessments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          instructions,
+          passingScore,
+        }),
+      });
 
       const data = await response.json();
 
@@ -70,9 +101,7 @@ export default function AssessmentBuilder({
       setAssessmentId(assessment.id);
       setMessage("Assessment created as a draft. Now add questions.");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -81,8 +110,8 @@ export default function AssessmentBuilder({
   function updateOption(index: number, optionText: string) {
     setOptions((current) =>
       current.map((option, i) =>
-        i === index ? { ...option, optionText } : option
-      )
+        i === index ? { ...option, optionText } : option,
+      ),
     );
   }
 
@@ -91,17 +120,14 @@ export default function AssessmentBuilder({
       current.map((option, i) => ({
         ...option,
         isCorrect: i === index,
-      }))
+      })),
     );
   }
 
   function addOption() {
     if (options.length >= 6) return;
 
-    setOptions((current) => [
-      ...current,
-      { optionText: "", isCorrect: false },
-    ]);
+    setOptions((current) => [...current, { optionText: "", isCorrect: false }]);
   }
 
   function removeOption(index: number) {
@@ -137,7 +163,7 @@ export default function AssessmentBuilder({
             points,
             options,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -157,16 +183,75 @@ export default function AssessmentBuilder({
 
       setMessage("Question saved successfully. Add another question.");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
 
+  async function publishAssessment() {
+    if (!assessmentId) return;
+
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/assessments/${assessmentId}/publish`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Could not publish assessment.");
+      }
+
+      setIsPublished(true);
+      setMessage("Assessment published successfully!");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function resumeAssessment(assessment: ExistingAssessment) {
+    setAssessmentId(assessment.id);
+    setSelectedAssessmentId(assessment.id);
+    setIsPublished(assessment.status === "published");
+    setMessage(`Resumed: ${assessment.title}`);
+    setError("");
+  }
+
   return (
     <section className="mt-10 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+      <section>
+        <h2>Existing assessments</h2>
+
+        {existingAssessments.length === 0 ? (
+          <p>No assessments created yet.</p>
+        ) : (
+          <ul>
+            {existingAssessments.map((assessment) => (
+              <li key={assessment.id}>
+                <span>
+                  {assessment.title} — {assessment.status}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => resumeAssessment(assessment)}
+                >
+                  {assessment.id === selectedAssessmentId
+                    ? "Selected"
+                    : "Resume"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       <div className="border-b border-slate-100 bg-linear-to-br from-indigo-50/70 via-white to-white px-6 py-7 sm:px-8">
         <p className="text-xs font-semibold tracking-wide text-brand">
           COURSE ASSESSMENT
@@ -415,6 +500,15 @@ export default function AssessmentBuilder({
               >
                 {loading ? "Saving..." : "Save question"}
                 {!loading && <span aria-hidden="true">-&gt;</span>}
+              </button>
+
+              <button
+                type="button"
+                onClick={publishAssessment}
+                disabled={loading || isPublished}
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20 transition hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                {loading ? "Please wait..." : "Publish assessment"}
               </button>
             </div>
           </form>

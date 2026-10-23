@@ -10,6 +10,7 @@ import db from "@/lib/db";
 import { courses } from "@/lib/db/schema/courses";
 import EnrollButton from "./enroll-button";
 import { enrollments } from "@/lib/db/schema/enrollments";
+import ReviewForm from "./review-form";
 
 import { getCourseProgress } from "@/lib/queries/course-progress";
 import { getCourseReviewSummary } from "@/lib/queries/course-review-summary";
@@ -154,6 +155,10 @@ export default async function CourseDetailPage({
                 </li>
               ))}
             </ul>
+          )}
+
+          {session && session.user.role === "student" && (
+            <ReviewForm courseId={courseId} />
           )}
         </section>
 

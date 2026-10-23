@@ -12,6 +12,8 @@ import EnrollButton from "./enroll-button";
 import { enrollments } from "@/lib/db/schema/enrollments";
 import ReviewForm from "./review-form";
 
+import AssessmentBuilder from "./assessment-builder";
+
 import { getCourseProgress } from "@/lib/queries/course-progress";
 import { getCourseReviewSummary } from "@/lib/queries/course-review-summary";
 import { getCourseReviews } from "@/lib/queries/course-reviews";
@@ -83,6 +85,10 @@ export default async function CourseDetailPage({
     getCourseReviewSummary(courseId),
     getCourseReviews(courseId),
   ]);
+
+  const isCourseOwner =
+  session?.user?.role === "instructor" &&
+  course.instructorId === session.user.id;
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -342,6 +348,8 @@ export default async function CourseDetailPage({
                 ))}
               </ol>
             )}
+
+            {isCourseOwner && <AssessmentBuilder courseId={course.id} />}
           </section>
         </div>
       </div>

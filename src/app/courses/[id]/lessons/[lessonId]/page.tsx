@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -112,6 +112,38 @@ export default async function LessonDetailPage({
 
   const canReadLesson = isOwnerInstructor || isEnrolled;
 
+  const [previousLesson] = await db
+    .select({
+      id: lessons.id,
+      title: lessons.title,
+      position: lessons.position,
+    })
+    .from(lessons)
+    .where(
+      and(
+        eq(lessons.courseId, courseId),
+        lt(lessons.position, lesson.position),
+      ),
+    )
+    .orderBy(desc(lessons.position))
+    .limit(1);
+
+  const [nextLesson] = await db
+    .select({
+      id: lessons.id,
+      title: lessons.title,
+      position: lessons.position,
+    })
+    .from(lessons)
+    .where(
+      and(
+        eq(lessons.courseId, courseId),
+        gt(lessons.position, lesson.position),
+      ),
+    )
+    .orderBy(asc(lessons.position))
+    .limit(1);
+
   return (
     <main className="min-h-dvh bg-canvas text-ink">
       <div className="mx-auto max-w-6xl px-6 sm:px-10">
@@ -208,6 +240,41 @@ export default async function LessonDetailPage({
               </Link>
             </p>
           )}
+
+          <nav
+            aria-label="Lesson navigation"
+            className="mt-10 flex items-center justify-between gap-4 border-t border-slate-200 pt-6"
+          >
+            {previousLesson ? (
+              <Link
+                href={`/courses/${courseId}/lessons/${previousLesson.id}`}
+                className="inline-flex flex-col gap-1"
+              >
+                <span className="text-sm text-slate-500">
+                  ← Previous lesson
+                </span>
+                <span className="font-semibold">{previousLesson.title}</span>
+              </Link>
+            ) : (
+              <span className="text-sm text-slate-400">
+                This is the first lesson
+              </span>
+            )}
+
+            {nextLesson ? (
+              <Link
+                href={`/courses/${courseId}/lessons/${nextLesson.id}`}
+                className="inline-flex flex-col items-end gap-1 text-right"
+              >
+                <span className="text-sm text-slate-500">Next lesson →</span>
+                <span className="font-semibold">{nextLesson.title}</span>
+              </Link>
+            ) : (
+              <span className="text-sm text-slate-400">
+                You&apos;ve reached the last lesson
+              </span>
+            )}
+          </nav>
 
           <div className="mt-6">
             <Link

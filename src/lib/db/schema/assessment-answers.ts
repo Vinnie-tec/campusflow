@@ -1,4 +1,3 @@
-
 import {
   pgTable,
   serial,
@@ -29,11 +28,9 @@ export const assessmentAnswers = pgTable(
         onDelete: "cascade",
       }),
 
-    selectedOptionId: integer("selected_option_id")
-      .notNull()
-      .references(() => assessmentOptions.id, {
-        onDelete: "restrict",
-      }),
+    selectedOptionId: integer("selected_option_id").references(
+      () => assessmentOptions.id,
+    ),
 
     answeredAt: timestamp("answered_at", {
       withTimezone: true,

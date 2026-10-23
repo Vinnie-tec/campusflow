@@ -71,6 +71,13 @@
       "when": 1792621494959,
       "tag": "0009_left_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792753214270,
+      "tag": "0010_square_outlaw_kid",
+      "breakpoints": true
     }
   ]
 }

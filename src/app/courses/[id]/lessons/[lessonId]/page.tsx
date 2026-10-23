@@ -75,6 +75,11 @@ export default async function LessonDetailPage({
   let isEnrolled = false;
   let isCompleted = false;
 
+  // The course query above has already verified that:
+  // - instructors can only access their own courses;
+  // - everyone else can only access published courses.
+  const isOwnerInstructor = session?.user.role === "instructor";
+
   if (session?.user.role === "student") {
     const [enrollment] = await db
       .select({ id: enrollments.id })
@@ -104,6 +109,8 @@ export default async function LessonDetailPage({
       isCompleted = Boolean(progress);
     }
   }
+
+  const canReadLesson = isOwnerInstructor || isEnrolled;
 
   return (
     <main className="min-h-dvh bg-canvas text-ink">
@@ -160,9 +167,25 @@ export default async function LessonDetailPage({
             </header>
 
             <div className="px-6 py-8 sm:px-10 sm:py-12">
-              <p className="whitespace-pre-wrap text-base leading-8 text-slate-700 sm:text-lg sm:leading-9">
-                {lesson.content}
-              </p>
+              {canReadLesson ? (
+                <p className="whitespace-pre-wrap text-base leading-8 text-slate-700 sm:text-lg sm:leading-9">
+                  {lesson.content}
+                </p>
+              ) : (
+                <div>
+                  <p className="text-slate-600">
+                    Enroll in this course to access the full lesson content and
+                    track your progress.
+                  </p>
+
+                  <Link
+                    href={session ? `/courses/${courseId}` : `/login`}
+                    className="mt-4 inline-flex font-semibold text-brand underline"
+                  >
+                    {session ? "View course and enroll" : "Log in to continue"}
+                  </Link>
+                </div>
+              )}
             </div>
           </article>
 

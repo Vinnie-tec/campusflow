@@ -31,15 +31,28 @@ export async function PATCH(
   }
 
   // 3. Validate the course ID from the URL.
+
+  // 3. Validate the course ID from the URL.
   const { id } = await params;
+
+  // Accept only digits in the URL parameter.
+  if (!/^\d+$/.test(id)) {
+    return Response.json(
+      { error: "Invalid course ID." },
+      { status: 400 },
+    );
+  }
+
   const courseId = Number(id);
 
+  // Ensure the number is a safe, positive integer.
   if (!Number.isSafeInteger(courseId) || courseId < 1) {
     return Response.json(
       { error: "Invalid course ID." },
       { status: 400 },
     );
   }
+
 
   // 4. Parse the submitted JSON.
   let body: unknown;

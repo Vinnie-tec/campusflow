@@ -6,6 +6,14 @@ import { lessonProgress } from "@/lib/db/schema/lesson-progress";
 import { calculatePercentage } from "@/lib/utils/percentage";
 
 export async function getCourseProgress(courseId: number, studentId: string) {
+  if (!Number.isSafeInteger(courseId) || courseId <= 0) {
+    throw new Error("Invalid course ID.");
+  }
+
+  if (!studentId.trim()) {
+    throw new Error("Invalid student ID.");
+  }
+
   const [result] = await db
     .select({
       totalLessons: sql<number>`count(${lessons.id})::int`,

@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 
@@ -39,11 +38,21 @@ export async function POST(
     }
 
     // 3. Validate the IDs from the URL.
+
     const { id, lessonId } = await params;
-    
+
+    // Accept only decimal digits in the URL.
+    if (!/^\d+$/.test(id) || !/^\d+$/.test(lessonId)) {
+      return NextResponse.json(
+        { error: "Invalid course or lesson ID." },
+        { status: 400 },
+      );
+    }
+
     const courseId = Number(id);
     const parsedLessonId = Number(lessonId);
 
+    // Ensure both IDs are safe, positive integers.
     if (
       !Number.isSafeInteger(courseId) ||
       courseId < 1 ||
@@ -73,10 +82,7 @@ export async function POST(
       .limit(1);
 
     if (!lesson) {
-      return NextResponse.json(
-        { error: "Lesson not found." },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
     }
 
     // 5. Confirm that the student is enrolled in this course.
@@ -106,10 +112,7 @@ export async function POST(
         lessonId: parsedLessonId,
       })
       .onConflictDoNothing({
-        target: [
-          lessonProgress.studentId,
-          lessonProgress.lessonId,
-        ],
+        target: [lessonProgress.studentId, lessonProgress.lessonId],
       })
       .returning();
 

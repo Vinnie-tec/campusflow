@@ -31,9 +31,18 @@ export async function POST(
         { status: 403 },
       );
     }
-
-    // 3. Get and validate the course ID from the URL
+   
+    // 3. Get and validate the course ID from the URL.
     const { id } = await params;
+
+    // Only accept a positive decimal ID in string form.
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json(
+        { error: "Invalid course ID." },
+        { status: 400 },
+      );
+    }
+
     const courseId = Number(id);
 
     if (!Number.isSafeInteger(courseId) || courseId <= 0) {
@@ -42,6 +51,7 @@ export async function POST(
         { status: 400 },
       );
     }
+
 
     // 4. Make sure the course exists and is published
     const [course] = await db

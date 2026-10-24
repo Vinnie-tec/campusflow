@@ -1,4 +1,3 @@
-
 import { and, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
@@ -18,10 +17,7 @@ export async function GET(
   });
 
   if (!session) {
-    return Response.json(
-      { error: "Please sign in." },
-      { status: 401 },
-    );
+    return Response.json({ error: "Please sign in." }, { status: 401 });
   }
 
   if (session.user.role !== "instructor") {
@@ -35,27 +31,16 @@ export async function GET(
   const assessmentId = Number(id);
 
   if (!Number.isSafeInteger(assessmentId) || assessmentId <= 0) {
-    return Response.json(
-      { error: "Invalid assessment ID." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Invalid assessment ID." }, { status: 400 });
   }
 
   try {
     // Confirm that this assessment belongs to a course
     // owned by the currently signed-in instructor.
     const [assessment] = await db
-      .select({
-        id: assessments.id,
-        title: assessments.title,
-        passingScore: assessments.passingScore,
-        courseId: courses.id,
-      })
+      .select()
       .from(assessments)
-      .innerJoin(
-        courses,
-        eq(assessments.courseId, courses.id),
-      )
+      .innerJoin(courses, eq(assessments.courseId, courses.id))
       .where(
         and(
           eq(assessments.id, assessmentId),
@@ -65,10 +50,7 @@ export async function GET(
       .limit(1);
 
     if (!assessment) {
-      return Response.json(
-        { error: "Assessment not found." },
-        { status: 404 },
-      );
+      return Response.json({ error: "Assessment not found." }, { status: 404 });
     }
 
     const attempts = await db
@@ -83,24 +65,20 @@ export async function GET(
         submittedAt: assessmentAttempts.submittedAt,
       })
       .from(assessmentAttempts)
-      .innerJoin(
-        user,
-        eq(assessmentAttempts.studentId, user.id),
-      )
+      .innerJoin(user, eq(assessmentAttempts.studentId, user.id))
       .where(eq(assessmentAttempts.assessmentId, assessmentId))
       .orderBy(desc(assessmentAttempts.startedAt));
 
     return Response.json({
       assessment: {
-        id: assessment.id,
-        title: assessment.title,
-        passingScore: assessment.passingScore,
+        id: assessment.assessments.id,
+        title: assessment.assessments.title,
+        passingScore: assessment.assessments.passingScore,
       },
       results: attempts.map((attempt) => ({
         ...attempt,
         passed:
-          attempt.score !== null &&
-          attempt.score >= assessment.passingScore,
+          attempt.score !== null && attempt.score >= assessment.assessments.passingScore,
       })),
     });
   } catch (error) {

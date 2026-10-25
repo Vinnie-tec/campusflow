@@ -16,7 +16,6 @@ type AttemptResult = {
   submittedAt: string | null;
   passed: boolean | null;
 };
-
 export default async function AssessmentResultsPage({ params }: PageProps) {
   const { id } = await params;
 
@@ -29,7 +28,6 @@ export default async function AssessmentResultsPage({ params }: PageProps) {
     </main>
   );
 }
-
 async function AssessmentResults({ assessmentId }: { assessmentId: string }) {
   const requestHeaders = await headers();
 

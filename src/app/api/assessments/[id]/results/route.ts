@@ -1,6 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
-
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { assessments } from "@/lib/db/schema/assessments";
@@ -19,21 +18,17 @@ export async function GET(
   if (!session) {
     return Response.json({ error: "Please sign in." }, { status: 401 });
   }
-
   if (session.user.role !== "instructor") {
     return Response.json(
       { error: "Only instructors can view assessment results." },
       { status: 403 },
     );
   }
-
   const { id } = await params;
   const assessmentId = Number(id);
-
   if (!Number.isSafeInteger(assessmentId) || assessmentId <= 0) {
     return Response.json({ error: "Invalid assessment ID." }, { status: 400 });
   }
-
   try {
     // Confirm that this assessment belongs to a course
     // owned by the currently signed-in instructor.

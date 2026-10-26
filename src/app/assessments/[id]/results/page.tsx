@@ -7,15 +7,16 @@ type PageProps = {
 };
 
 type AttemptResult = {
-  id: number | string;
-  name: string | null;
-  email: string;
+  attemptId: number | string;
+  studentName: string | null;
+  studentEmail: string;
   score: number | null;
   status: string;
   startedAt: string | null;
   submittedAt: string | null;
-  passed: boolean | null;
+  passed: boolean;
 };
+
 export default async function AssessmentResultsPage({ params }: PageProps) {
   const { id } = await params;
 
@@ -48,22 +49,21 @@ async function AssessmentResults({ assessmentId }: { assessmentId: string }) {
     },
   );
 
-if (!response.ok) {
-  const errorText = await response.text();
+  if (!response.ok) {
+    const errorText = await response.text();
 
-  console.error("Assessment results API error:", {
-    status: response.status,
-    body: errorText,
-  });
+    console.error("Assessment results API error:", {
+      status: response.status,
+      body: errorText,
+    });
 
-  return (
-    <p>
-      Unable to load assessment results.
-      Status: {response.status}
-      — {errorText}
-    </p>
-  );
-}
+    return (
+      <p>
+        Unable to load assessment results. Status: {response.status}—{" "}
+        {errorText}
+      </p>
+    );
+  }
 
   const data = await response.json();
   const results: AttemptResult[] = data.results ?? [];
@@ -90,9 +90,9 @@ if (!response.ok) {
 
         <tbody>
           {results.map((attempt) => (
-            <tr key={attempt.id}>
-              <td>{attempt.name ?? "Unknown student"}</td>
-              <td>{attempt.email}</td>
+            <tr key={attempt.attemptId}>
+              <td>{attempt.studentName ?? "Unknown student"}</td>
+              <td>{attempt.studentEmail}</td>
               <td>{attempt.score ?? "Not graded"}</td>
               <td>{attempt.status}</td>
               <td>

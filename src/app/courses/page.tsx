@@ -44,22 +44,39 @@ export default async function CoursesPage() {
             </span>
             <span className="text-lg font-bold tracking-tight">campusflow</span>
           </Link>
-          {session?.user.role === "instructor" ? (
+          <nav aria-label="Main navigation" className="flex items-center gap-2">
             <Link
-              href="/courses/new"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              href="/projects"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
             >
-              Create a course
-              <span aria-hidden="true">-&gt;</span>
+              Projects
             </Link>
-          ) : (
-            <Link
-              href="/"
-              className="text-sm font-semibold text-slate-500 transition hover:text-ink"
-            >
-              Back to home
-            </Link>
-          )}
+            {session?.user.role === "student" && (
+              <Link
+                href="/my-learning"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                My learning
+              </Link>
+            )}
+            {!session && (
+              <Link
+                href="/login"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                Sign in
+              </Link>
+            )}
+            {session?.user.role === "instructor" && (
+              <Link
+                href="/courses/new"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                Create a course
+                <span aria-hidden="true">-&gt;</span>
+              </Link>
+            )}
+          </nav>
         </header>
 
         <section className="py-12 sm:py-16">

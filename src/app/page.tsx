@@ -11,12 +11,26 @@ export default function Home() {
             </span>
             <span className="text-lg font-bold tracking-tight">campusflow</span>
           </Link>
-          <Link
-            href="/projects"
-            className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
-          >
-            Projects
-          </Link>
+          <nav aria-label="Main navigation" className="flex items-center gap-2">
+            <Link
+              href="/courses"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+            >
+              Courses
+            </Link>
+            <Link
+              href="/projects"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+            >
+              Projects
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+            >
+              Sign in
+            </Link>
+          </nav>
         </header>
 
         <section className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20 lg:py-20">
@@ -30,18 +44,24 @@ export default function Home() {
               <span className="block text-brand">great work.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              A calmer place to bring your campus projects together, shape the next steps, and
-              turn good ideas into something real.
+              Find courses to grow your skills and keep your campus projects moving, all in one
+              place.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
-                href="/projects"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:-translate-y-0.5 hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               >
-                Create a project
+                Explore courses
                 <span aria-hidden="true">-&gt;</span>
               </Link>
-              <span className="text-sm text-slate-500">Simple tools. Clear momentum.</span>
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-ink transition hover:border-indigo-200 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                Manage projects
+                <span aria-hidden="true">-&gt;</span>
+              </Link>
             </div>
           </div>
 

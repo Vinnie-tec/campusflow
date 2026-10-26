@@ -71,8 +71,6 @@ export default async function ProjectsPage({
     redirect("/login");
   }
 
-  console.log("Current user role:", session?.user.role);
-
   // Always restrict results to the authenticated user.
   const conditions: SQL[] = [eq(projects.ownerId, session.user.id)];
 
@@ -165,12 +163,20 @@ export default async function ProjectsPage({
             </span>
             <span className="text-lg font-bold tracking-tight">campusflow</span>
           </Link>
-          <Link
-            href="/"
-            className="text-sm font-semibold text-slate-500 transition hover:text-ink"
-          >
-            Back to home
-          </Link>
+          <nav aria-label="Main navigation" className="flex items-center gap-2">
+            <Link
+              href="/courses"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+            >
+              Courses
+            </Link>
+            <Link
+              href="/"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+            >
+              Home
+            </Link>
+          </nav>
         </header>
 
         <div className="mx-auto grid max-w-5xl gap-12 py-12 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:py-20">

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import styles from "./results.module.css";
+import styles from "./page.module.css";
 
 export const instant = false;
 
@@ -64,10 +64,12 @@ async function AssessmentResults({ assessmentId }: { assessmentId: string }) {
   if (!response.ok) {
     const errorText = await response.text();
 
-    console.error("Assessment results API error:", {
-      status: response.status,
-      body: errorText,
-    });
+    if (response.status >= 500) {
+      console.error("Assessment results API error:", {
+        status: response.status,
+        body: errorText,
+      });
+    }
 
     return (
       <p className={styles.errorState} role="alert">
@@ -161,14 +163,14 @@ async function AssessmentResults({ assessmentId }: { assessmentId: string }) {
                     <td>
                       <span
                         className={`${styles.statusBadge} ${
-                          attempt.passed === null
+                          attempt.score === null
                             ? styles.resultPending
                             : attempt.passed
                               ? styles.resultPassed
                               : styles.resultFailed
                         }`}
                       >
-                        {attempt.passed === null
+                        {attempt.score === null
                           ? "Pending"
                           : attempt.passed
                             ? "Passed"

@@ -1,0 +1,345 @@
+.page {
+  min-height: 100vh;
+  padding: 58px 28px 88px;
+  background:
+    radial-gradient(ellipse at 88% 0%, rgb(205 235 229 / 42%), transparent 31rem),
+    #f5f7f8;
+}
+
+.shell {
+  width: min(100%, 1160px);
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.eyebrow,
+.panelEyebrow {
+  color: #317c70;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+}
+
+.pageHeader h1 {
+  margin: 10px 0 8px;
+  color: #182c32;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.pageHeader p {
+  margin: 0;
+  color: #6c7d80;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.viewLabel {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border: 1px solid #dce8e4;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 65%);
+  color: #55736e;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.resultsContent {
+  display: grid;
+  gap: 22px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #e2e9e7;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.metric {
+  display: grid;
+  min-height: 142px;
+  align-content: center;
+  gap: 7px;
+  padding: 22px 26px;
+}
+
+.metric + .metric {
+  border-left: 1px solid #e8eeec;
+}
+
+.metricLabel {
+  color: #718184;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.metric strong {
+  color: #1b3336;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricNote {
+  color: #95a1a1;
+  font-size: 11px;
+}
+
+.attemptsPanel {
+  overflow: hidden;
+  border: 1px solid #e2e9e7;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.panelHeader {
+  display: flex;
+  min-height: 86px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e8eeec;
+}
+
+.panelEyebrow {
+  font-size: 9px;
+}
+
+.panelHeader h2 {
+  margin: 5px 0 0;
+  color: #24383b;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.attemptCount {
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: #f0f5f3;
+  color: #55736e;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.resultsTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.resultsTable th {
+  padding: 12px 18px;
+  background: #f8faf9;
+  color: #83908f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.resultsTable td {
+  padding: 15px 18px;
+  border-top: 1px solid #edf1ef;
+  color: #607174;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.resultsTable tbody tr:hover {
+  background: #fbfcfc;
+}
+
+.studentName {
+  color: #263c3e !important;
+  font-weight: 650;
+}
+
+.studentEmail {
+  color: #78888a !important;
+}
+
+.scoreCell {
+  color: #263c3e !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dateCell {
+  color: #78888a !important;
+}
+
+.statusBadge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.statusNeutral,
+.resultPending {
+  background: #f1f3f2;
+  color: #718082;
+}
+
+.resultPassed {
+  background: #e8f4ee;
+  color: #287457;
+}
+
+.resultFailed {
+  background: #fbefea;
+  color: #a8543b;
+}
+
+.emptyState {
+  display: grid;
+  min-height: 250px;
+  align-content: center;
+  justify-items: center;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.emptyMark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #dce8e4;
+  border-radius: 50%;
+  color: #5d8c82;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.emptyState h3 {
+  margin: 14px 0 5px;
+  color: #263c3e;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.emptyState p {
+  max-width: 350px;
+  margin: 0;
+  color: #78888a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.errorState {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid #f0d5cb;
+  border-radius: 6px;
+  background: #fff8f5;
+  color: #a8543b;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding: 36px 18px 56px;
+  }
+
+  .pageHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .pageHeader h1 {
+    font-size: 29px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metric {
+    min-height: 0;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 15px 18px;
+  }
+
+  .metric + .metric {
+    border-top: 1px solid #e8eeec;
+    border-left: 0;
+  }
+
+  .metricLabel {
+    grid-column: 1;
+  }
+
+  .metric strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    font-size: 25px;
+  }
+
+  .metricNote {
+    grid-column: 1;
+  }
+
+  .panelHeader {
+    min-height: 76px;
+    padding: 15px 18px;
+  }
+
+  .resultsTable {
+    min-width: 760px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .metric,
+  .attemptsPanel {
+    animation: arrive 380ms ease-out both;
+  }
+
+  .attemptsPanel {
+    animation-delay: 70ms;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

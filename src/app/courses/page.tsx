@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import CourseStatusButton from "./course-status-button";
+import SignOutButton from "@/app/sign-out-button";
 
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
@@ -59,7 +60,17 @@ export default async function CoursesPage() {
                 My learning
               </Link>
             )}
-            {!session && (
+            {session?.user.role === "instructor" && (
+              <Link
+                href="/dashboard"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                Dashboard
+              </Link>
+            )}
+            {session ? (
+              <SignOutButton />
+            ) : (
               <Link
                 href="/login"
                 className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"

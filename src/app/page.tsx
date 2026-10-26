@@ -1,6 +1,16 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 
-export default function Home() {
+import SignOutButton from "@/app/sign-out-button";
+import { auth } from "@/lib/auth";
+
+export const instant = false;
+
+export default async function Home() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   return (
     <main className="min-h-dvh overflow-hidden bg-canvas text-ink">
       <div className="mx-auto flex min-h-dvh max-w-7xl flex-col px-6 sm:px-10">
@@ -24,12 +34,40 @@ export default function Home() {
             >
               Projects
             </Link>
-            <Link
-              href="/login"
-              className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
-            >
-              Sign in
-            </Link>
+            {session?.user.role === "student" && (
+              <Link
+                href="/my-learning"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                My learning
+              </Link>
+            )}
+            {session?.user.role === "instructor" && (
+              <Link
+                href="/courses/new"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                Teach
+              </Link>
+            )}
+            {session ? (
+              <SignOutButton />
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </nav>
         </header>
 

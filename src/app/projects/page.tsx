@@ -16,6 +16,7 @@ import ProjectList from "./project-list";
 import ProjectPagination from "./project-pagination";
 
 import ProjectFilters from "./project-filters";
+import SignOutButton from "@/app/sign-out-button";
 
 const PAGE_SIZE = 2;
 
@@ -170,6 +171,23 @@ export default async function ProjectsPage({
             >
               Courses
             </Link>
+            {session.user.role === "student" && (
+              <Link
+                href="/my-learning"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                My learning
+              </Link>
+            )}
+            {session.user.role === "instructor" && (
+              <Link
+                href="/dashboard"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+              >
+                Dashboard
+              </Link>
+            )}
+            <SignOutButton />
             <Link
               href="/"
               className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"

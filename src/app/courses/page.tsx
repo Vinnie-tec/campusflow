@@ -60,7 +60,7 @@ export default async function CoursesPage() {
                 My learning
               </Link>
             )}
-            {session?.user.role === "instructor" && (
+            {session?.user.role === "student" && (
               <Link
                 href="/dashboard"
                 className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"

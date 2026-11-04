@@ -172,21 +172,22 @@ export default async function ProjectsPage({
               Courses
             </Link>
             {session.user.role === "student" && (
-              <Link
-                href="/my-learning"
-                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
-              >
-                My learning
-              </Link>
+              <>
+                <Link
+                  href="/my-learning"
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+                >
+                  My learning
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
+                >
+                  Dashboard
+                </Link>
+              </>
             )}
-            {session.user.role === "instructor" && (
-              <Link
-                href="/dashboard"
-                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-ink"
-              >
-                Dashboard
-              </Link>
-            )}
+
             <SignOutButton />
             <Link
               href="/"

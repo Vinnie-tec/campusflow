@@ -4,11 +4,44 @@ CampusFlow is a learning and project workspace for university students and instr
 
 > **Project status:** Core course, assessment, learning-progress, review, and project flows are implemented. Authentication uses email and password; public sign-up creates student accounts. Instructor access is assigned outside public sign-up.
 
-## Application preview
+## Screenshots
 
-![CampusFlow home page](public/campusflow-home.png)
+The home page brings course discovery and project planning together. The screenshots below show the main student and instructor workflows.
 
-The home page links to the course catalogue, project workspace, and sign-in flow. Course and project pages link back to the other core features.
+<table>
+  <tr>
+    <td align="center"><img src="public/image1.png" alt="CampusFlow landing page with course and project links" width="560"></td>
+    <td align="center"><img src="public/image2.png" alt="Instructor course management page" width="560"></td>
+  </tr>
+  <tr>
+    <td align="center">Landing page</td>
+    <td align="center">Instructor course management</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/image3.png" alt="Project list with search, status filters, and project statistics" width="560"></td>
+    <td align="center"><img src="public/image4.png" alt="New project form" width="560"></td>
+  </tr>
+  <tr>
+    <td align="center">Project workspace</td>
+    <td align="center">Create a project</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/image5.png" alt="Course student reviews and rating form" width="560"></td>
+    <td align="center"><img src="public/image6.png" alt="Course details and student learning progress" width="560"></td>
+  </tr>
+  <tr>
+    <td align="center">Course reviews</td>
+    <td align="center">Course details and progress</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/image7.png" alt="Student dashboard showing learning progress" width="560"></td>
+    <td align="center"><img src="public/image8.png" alt="Instructor assessment creation form" width="560"></td>
+  </tr>
+  <tr>
+    <td align="center">Student dashboard</td>
+    <td align="center">Assessment authoring</td>
+  </tr>
+</table>
 
 ## Features
 
@@ -38,7 +71,7 @@ The home page links to the course catalogue, project workspace, and sign-in flow
 
 ### Prerequisites
 
-- Node.js 24 or a compatible current Node.js release
+- Node.js 20.9 or newer
 - npm
 - A PostgreSQL database (Neon works; a compatible PostgreSQL instance can also be used)
 
@@ -50,19 +83,16 @@ npm install
 
 ### Configure environment variables
 
-Create `.env.local` in the repository root. Do not commit this file or share its secret values.
+Copy `.env.example` to `.env.local` in the repository root, then replace the placeholders with credentials from your PostgreSQL provider and a locally generated secret. `.env.local` is ignored by Git; never commit it or share its values.
 
-```dotenv
-# Required by the application at runtime.
-DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+```powershell
+Copy-Item .env.example .env.local
+```
 
-# Optional, recommended for direct migration connections.
-# If omitted, Drizzle Kit falls back to DATABASE_URL.
-DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@DIRECT_HOST/DATABASE?sslmode=require"
+On macOS or Linux, use:
 
-# Better Auth configuration.
-BETTER_AUTH_SECRET="replace-with-a-long-random-secret"
-BETTER_AUTH_URL="http://localhost:3000"
+```bash
+cp .env.example .env.local
 ```
 
 Generate a secret locally, for example:
@@ -71,7 +101,7 @@ Generate a secret locally, for example:
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Use the correct PostgreSQL connection strings from your provider. `DATABASE_URL` is required by the application; `DATABASE_URL_UNPOOLED` is optional and used for migrations when available. Use your deployed application origin for `BETTER_AUTH_URL` in production, and configure production secrets in the hosting provider rather than committing them.
+Use the correct PostgreSQL connection strings from your provider. `DATABASE_URL` is required by the application; `DATABASE_URL_UNPOOLED` is optional and is preferred for migrations when available. For local development, `BETTER_AUTH_URL` should be `http://localhost:3000`.
 
 ### Set up the database
 
@@ -94,6 +124,24 @@ To inspect the schema with Drizzle Studio:
 ```bash
 npm run db:studio
 ```
+
+### Deploy to production
+
+CampusFlow can be deployed to Vercel or another Node.js host with Next.js support. You will need a production PostgreSQL database and the following production environment variables:
+
+| Variable | Required | Production value |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string for the application |
+| `DATABASE_URL_UNPOOLED` | Recommended | Direct PostgreSQL connection string for migrations |
+| `BETTER_AUTH_SECRET` | Yes | A unique, randomly generated secret |
+| `BETTER_AUTH_URL` | Yes | The canonical public URL of your deployment, such as `https://campusflow.example.com` |
+
+1. Create a production PostgreSQL database and configure the variables above in your hosting provider's environment settings. Do not use the example credentials or commit production secrets.
+2. Apply migrations to the production database before serving the app: run `npm run db:migrate` with the production `DATABASE_URL_UNPOOLED` (or `DATABASE_URL`) available to the command. The Drizzle config also reads `.env.local` for local CLI use.
+3. Deploy the repository with the production environment variables configured. For later schema changes, generate and review a migration, apply it to the target database, then deploy the updated app.
+4. Open the deployed site, test sign-up and sign-in, and check `/api/health/db` to confirm database connectivity.
+
+Set `BETTER_AUTH_URL` to the final HTTPS origin, and use a separate auth secret and database for each environment. The build does not automatically apply database migrations.
 
 ### Start the development server
 
@@ -201,7 +249,7 @@ src/
     utils/             Shared utilities
     validations/       Zod request schemas
 drizzle/               Versioned SQL migrations and snapshots
-public/                Static assets, including the README screenshot
+public/                Static assets and README screenshots
 ```
 
 ## Verification

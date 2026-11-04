@@ -11,7 +11,7 @@ import { updateProjectSchema } from "@/lib/validations/project";
 
 export async function PATCH(
   request: Request,
-  context: { params: Promise<{ ID: string }> },
+  context: { params: Promise<{ id: string }> },
 ) {
   // 1. Check whether the requester has a valid session.
   const session = await auth.api.getSession({
@@ -29,8 +29,8 @@ export async function PATCH(
     );
   }
   // Step 3: Read and validate the project ID.
-  const { ID } = await context.params;
-  const projectId = Number(ID);
+  const { id } = await context.params;
+  const projectId = Number(id);
 
   if (!Number.isInteger(projectId) || projectId <= 0) {
     return Response.json(
@@ -118,7 +118,7 @@ export async function PATCH(
 // DELETE: Remove one project using its ID.
 export async function DELETE(
   _request: Request,
-  context: { params: Promise<{ ID: string }> },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     // 1. Check whether the requester has a valid session.
@@ -137,8 +137,8 @@ export async function DELETE(
       );
     }
     // Get the project ID from the URL.
-    const { ID } = await context.params;
-    const projectId = Number(ID);
+    const { id } = await context.params;
+    const projectId = Number(id);
 
     // Make sure the ID is a positive integer.
     if (!Number.isInteger(projectId) || projectId <= 0) {
